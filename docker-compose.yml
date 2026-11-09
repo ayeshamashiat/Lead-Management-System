@@ -1,0 +1,103 @@
+
+services:
+
+  # =================================
+  # Local PostgreSQL (Optional)
+  # =================================
+  # Kept for local development or testing.
+  # The Spring Boot backend now uses Neon.
+  postgres:
+    image: postgres:16-alpine
+    container_name: lms-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    ports:
+      - "127.0.0.1:5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  # =================================
+  # Redis
+  # =================================
+  redis:
+    image: redis:7-alpine
+    container_name: lms-redis
+    restart: unless-stopped
+
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --requirepass
+      - ${REDIS_PASSWORD}
+
+    ports:
+      - "127.0.0.1:6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli -a "$$REDIS_PASSWORD" --no-auth-warning ping | grep PONG
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+
+  # =================================
+  # Spring Boot Backend
+  # =================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: lms-backend
+    restart: unless-stopped
+
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+
+    environment:
+
+      # Neon PostgreSQL
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${NEON_DB_HOST}:5432/${NEON_DB_NAME}?sslmode=require
+      SPRING_DATASOURCE_USERNAME: ${NEON_DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${NEON_DB_PASSWORD}
+
+      # JPA
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+      # Redis
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+    depends_on:
+      redis:
+        condition: service_healthy
+
+
+volumes:
+  postgres_data:
+  redis_data:
