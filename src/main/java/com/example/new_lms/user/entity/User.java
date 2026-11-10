@@ -11,6 +11,9 @@ public class User {
     private int id;
 
     @Column(nullable = false)
+    private String employeeId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
@@ -24,15 +27,15 @@ public class User {
     private boolean active = true;
 
     @ManyToOne
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "roleId")
     private Role role;
 
     @ManyToOne
-    @JoinColumn(name = "department_id")
+    @JoinColumn(name = "departmentId")
     private Department department;
 
     @ManyToOne
-    @JoinColumn(name = "manager_id")
+    @JoinColumn(name = "managerId")
     private User manager;
 
 }
