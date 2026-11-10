@@ -13,8 +13,14 @@ public class Comapny{
     private String companyname;
 
     @Column(name="email")
+    private String email;
+
+    @Column(name="phone")
+    private String email;
+
+    @Column(name="")
     private String phone;
 
-    @Column()
-
+    @Column(name="phone")
+    private String email;
 }
