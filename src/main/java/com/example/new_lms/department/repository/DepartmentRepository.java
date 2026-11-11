@@ -6,5 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public abstract class DepartmentRepository extends JpaRepository<Department, Long> {
-    Optional<Department> findByName(String name){}
+    Optional<Department> findByName(String name){};
 }

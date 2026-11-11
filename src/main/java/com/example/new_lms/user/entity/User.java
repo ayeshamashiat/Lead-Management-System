@@ -37,5 +37,4 @@ public class User {
     @ManyToOne
     @JoinColumn(name = "managerId")
     private User manager;
-
 }
